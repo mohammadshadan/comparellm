@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>LLM Model Playground - Login</title>
+  <style>
+    /* Base Reset and Body */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: #f9f9f9;
+      color: #333;
+      line-height: 1.4;
+      padding: 20px;
+    }
+    
+    /* Container */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    /* Headings */
+    h1 {
+      font-weight: 600;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+    
+    .section-title {
+      margin-top: 2rem;
+      margin-bottom: 1rem;
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #555;
+    }
+    
+    /* Flex Layouts */
+    .responses, .statistics {
+      display: flex;
+      gap: 1rem;
+    }
+    
+    /* Box Styling */
+    .box {
+      flex: 1;
+      background: #fff;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+      padding: 1rem;
+      overflow-y: auto;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+    
+    /* Fixed height for model response boxes */
+    .responses .box {
+      height: 350px;
+      overflow-y: auto;
+    }
+    
+    .box strong {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+    
+    /* Text Wrapping */
+    .text-wrap {
+      white-space: normal;
+      word-wrap: break-word;
+      word-break: break-word;
+      overflow-wrap: break-word;
+    }
+    
+    /* Prompt Form */
+    .prompt-section {
+      margin-top: 1rem;
+    }
+    
+    .prompt-section textarea {
+      width: 100%;
+      height: 75px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 0.75rem;
+      font-size: 1rem;
+      resize: vertical;
+    }
+    
+    /* Button Styling */
+    button {
+      margin-top: 0.75rem;
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      background: #007BFF;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s ease-in-out;
+    }
+    
+    button:hover {
+      background: #0056b3;
+    }
+    
+    /* Statistics Box: Use pre-line to preserve line breaks */
+    .stat-box {
+      white-space: pre-line;
+    }
+
+    /* Login Section Styling */
+    #loginSection {
+      max-width: 300px;
+      margin: 100px auto;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      background: #fff;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+    #loginSection h2 {
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+    #loginSection input {
+      width: 100%;
+      padding: 0.75rem;
+      margin-bottom: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    #loginSection button {
+      width: 100%;
+    }
+    #errorMsg {
+      color: red;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <!-- Login Section -->
+  <div id="loginSection">
+    <h2>Login</h2>
+    <div id="errorMsg"></div>
+    <form id="loginForm">
+      <input type="text" id="username" placeholder="Username" required />
+      <input type="password" id="password" placeholder="Password" required />
+      <button type="submit">Login</button>
+    </form>
+  </div>
+
+  <!-- Main Content (hidden until login) -->
+  <div id="mainContent" style="display:none;">
+    <div class="container">
+      <h1>LLM Model Playground</h1>
+
+      <!-- Model Responses Section -->
+      <div class="section-title">Model Responses</div>
+      <div class="responses">
+        <div class="box">
+          <strong>Mistral:</strong>
+          <div id="mistralText" class="text-wrap"></div>
+        </div>
+        <div class="box">
+          <strong>GPT-2:</strong>
+          <div id="phi2Text" class="text-wrap"></div>
+        </div>
+        <div class="box">
+          <strong>Google Gemma 2:</strong>
+          <div id="tinyllamaText" class="text-wrap"></div>
+        </div>
+      </div>
+
+      <!-- Prompt Input Section -->
+      <div class="prompt-section">
+        <form id="promptForm">
+          <textarea id="prompt" placeholder="Enter your prompt here..."></textarea><br>
+          <button type="submit">Generate</button>
+        </form>
+      </div>
+
+      <!-- Model Statistics Section -->
+      <div class="section-title">Model Statistics</div>
+      <div class="statistics">
+        <div class="box stat-box" id="mistralStat"></div>
+        <div class="box stat-box" id="phi2Stat"></div>
+        <div class="box stat-box" id="tinyllamaStat"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // List of allowed username-password pairs (add more as needed)
+    const allowedUsers = {
+      "user1": "password1",
+      "user2": "password2",
+      "admin": "admin123"
+    };
+
+    // Handle login submission
+    document.getElementById('loginForm').onsubmit = function(e) {
+      e.preventDefault();
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const errorMsg = document.getElementById('errorMsg');
+
+      // Validate credentials
+      if (allowedUsers[username] && allowedUsers[username] === password) {
+        // Hide the login section and show main content
+        document.getElementById('loginSection').style.display = 'none';
+        document.getElementById('mainContent').style.display = 'block';
+      } else {
+        errorMsg.textContent = "Invalid username or password.";
+      }
+    };
+
+    // Debug log to verify that the script is loaded.
+    console.log("Page loaded");
+
+    // Handle prompt submission for model generation
+    document.getElementById('promptForm').onsubmit = async function(e) {
+      e.preventDefault();
+      const prompt = document.getElementById('prompt').value.trim();
+      if (!prompt) return;
+
+      // Set loading placeholders for responses and stats
+      ['mistralText', 'phi2Text', 'tinyllamaText', 'mistralStat', 'phi2Stat', 'tinyllamaStat']
+        .forEach(id => document.getElementById(id).innerText = "Loading...");
+
+      console.log("Fetching data for prompt:", prompt);
+
+      try {
+        const response = await fetch('/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt })
+        });
+        const data = await response.json();
+        console.log("Received data:", data);
+
+        // Update model responses
+        document.getElementById('mistralText').innerText = data.mistral?.text || 'Error';
+        document.getElementById('phi2Text').innerText = data.phi2?.text || 'Error';
+        document.getElementById('tinyllamaText').innerText = data.tinyllama?.text || 'Error';
+
+        // Update statistics boxes
+        document.getElementById('mistralStat').innerText = formatStats(data.mistral);
+        document.getElementById('phi2Stat').innerText = formatStats(data.phi2);
+        document.getElementById('tinyllamaStat').innerText = formatStats(data.tinyllama);
+      } catch (err) {
+        console.error("Error fetching data:", err);
+      }
+    };
+
+    function formatStats(model) {
+      if (!model) return 'Error loading stats.';
+      return `Model: ${model.model}
+Temperature: ${model.temperature}
+Relevance: ${model.relevance}
+Time Taken: ${model.time_taken} sec`;
+    }
+  </script>
+</body>
+</html>
